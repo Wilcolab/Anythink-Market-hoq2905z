@@ -22,7 +22,7 @@ services:
   anythink-frontend-react:
     build: ./frontend
     container_name: anythink-frontend-react
-    command: sh -c "cd frontend && yarn install && /wait-for-it.sh anythink-backend-node:3000 --strict -- curl --head -X GET --retry 30 --retry-connrefused --retry-delay 1 anythink-backend-node:3000/api/ping && yarn start"
+    command: sh -c "cd frontend && yarn install && /wait-for-it.sh anythink-backend-node:3000 -t 120 --strict -- curl --head -X GET --retry 30 --retry-connrefused --retry-delay 1 anythink-backend-node:3000/api/ping && yarn start"
     environment:
       - NODE_ENV=development
       - PORT=3001
@@ -47,3 +47,13 @@ services:
       - ~/mongo/data:/data/db
     ports:
       - '27017:27017'
+
+  anythink-ack:
+    build: ./frontend
+    container_name: anythink-ack
+    command: sh -c "/wait-for-it.sh anythink-frontend-react:3001 -q -t 1000 && ./anythink_ack.sh"
+    working_dir: /usr/src
+    volumes:
+      - ./:/usr/src/
+    depends_on:
+      - "anythink-frontend-react" 
